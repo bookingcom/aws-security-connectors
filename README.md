@@ -1,4 +1,4 @@
-# AWS Security Connectors
+# AWS Security Connectors [![Build Status](https://github.com/bookingcom/aws-security-connectors/workflows/build/badge.svg)](https://github.com/bookingcom/aws-security-connectors/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/bookingcom/aws-security-connectors)](https://goreportcard.com/report/github.com/bookingcom/aws-security-connectors)
 
 ## Overview
 
