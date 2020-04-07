@@ -1,0 +1,15 @@
+version: '2'
+services:
+
+  aws-security-connectors:
+    build: .
+    image: paskal/aws-security-connectors:latest
+    environment:
+      - DEBUG
+      - AWS_ACCOUNT_ID
+      - PRISMA_ACCOUNT_NAME
+      - PRISMA_EXTERNAL_ID
+      - PRISMA_ROLE_NAME
+      - PRISMA_API_URL
+      - PRISMA_API_KEY
+      - PRISMA_API_PASSWORD
