@@ -15,9 +15,10 @@
 package connectors
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/detective"
-	"github.com/pkg/errors"
 )
 
 // DetectiveInviter is a per-region structure which contains all information
@@ -58,12 +59,12 @@ func NewDetectiveInviter(masterSess, memberSess client.ConfigProvider) *Detectiv
 func (d DetectiveInviter) AddMember(accountID, accountEmail, masterAccountID string) error {
 	graphARN, err := getGraphARN(d.masterSvc)
 	if err != nil {
-		return errors.Wrap(err, "can't get graphARN of master account")
+		return fmt.Errorf("can't get graphARN of master account: %w", err)
 	}
 
 	connected, err := ifDetectiveMemberAlreadyEnabled(d.masterSvc, graphARN, &accountID)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving information about existing member account")
+		return fmt.Errorf("error retrieving information about existing member account: %w", err)
 	}
 	if connected {
 		return nil
@@ -71,12 +72,12 @@ func (d DetectiveInviter) AddMember(accountID, accountEmail, masterAccountID str
 
 	err = setUpDetectiveMaster(d.masterSvc, graphARN, &accountID, &accountEmail)
 	if err != nil {
-		return errors.Wrap(err, "error setting up master account")
+		return fmt.Errorf("error setting up master account: %w", err)
 	}
 
 	err = acceptDetectiveMemberInvitation(d.memberSvc, &masterAccountID)
 	if err != nil {
-		return errors.Wrap(err, "error accepting invitation in member account")
+		return fmt.Errorf("error accepting invitation in member account: %w", err)
 	}
 
 	return nil
@@ -90,7 +91,7 @@ func ifDetectiveMemberAlreadyEnabled(d DetectiveMasterClient, graphARN, memberAc
 		GraphArn:   graphARN,
 	})
 	if err != nil {
-		return false, errors.Wrap(err, "error getting existing members")
+		return false, fmt.Errorf("error getting existing members: %w", err)
 	}
 
 	// Search conditions looking for particular account and we expect to get either zero results
@@ -116,7 +117,7 @@ func setUpDetectiveMaster(d DetectiveMasterClient, graphARN, memberAccountID, em
 		GraphArn: graphARN,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error creating member account")
+		return fmt.Errorf("error creating member account: %w", err)
 	}
 
 	return nil
@@ -126,7 +127,7 @@ func setUpDetectiveMaster(d DetectiveMasterClient, graphARN, memberAccountID, em
 func acceptDetectiveMemberInvitation(d DetectiveMemberClient, masterAccountID *string) error {
 	invitations, err := d.ListInvitations(nil)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving list of invitations")
+		return fmt.Errorf("error retrieving list of invitations: %w", err)
 	}
 	var graphArn *string
 	for _, inv := range invitations.Invitations {
@@ -136,14 +137,14 @@ func acceptDetectiveMemberInvitation(d DetectiveMemberClient, masterAccountID *s
 		}
 	}
 	if graphArn == nil {
-		return errors.New("can't find invitation from master account")
+		return fmt.Errorf("can't find invitation from master account")
 	}
 
 	_, err = d.AcceptInvitation(&detective.AcceptInvitationInput{
 		GraphArn: graphArn,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error accepting invitation")
+		return fmt.Errorf("error accepting invitation: %w", err)
 	}
 
 	return nil
@@ -153,10 +154,10 @@ func acceptDetectiveMemberInvitation(d DetectiveMemberClient, masterAccountID *s
 func getGraphARN(d DetectiveMasterClient) (*string, error) {
 	graphs, err := d.ListGraphs(nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "error listing graphs")
+		return nil, fmt.Errorf("error listing graphs: %w", err)
 	}
 	if len(graphs.GraphList) != 1 {
-		return nil, errors.Errorf(
+		return nil, fmt.Errorf(
 			"%d graphs found instead of one",
 			len(graphs.GraphList),
 		)

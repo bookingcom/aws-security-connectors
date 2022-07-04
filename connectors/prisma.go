@@ -17,10 +17,10 @@ package connectors
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/paskal/go-prisma"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -58,7 +58,7 @@ func NewPrisma(username, password, apiURL string) *Prisma {
 func (p Prisma) AddAWSAccount(accountID, name, externalID, roleName string) error {
 	exists, err := p.ifAWSAccountExists(accountID)
 	if err != nil {
-		return errors.Wrap(err, "error checking for existing account")
+		return fmt.Errorf("error checking for existing account: %w", err)
 	}
 
 	newAcc := awsAccountInfo{
@@ -72,14 +72,14 @@ func (p Prisma) AddAWSAccount(accountID, name, externalID, roleName string) erro
 	if exists {
 		log.Print("Account already exists in Prisma")
 		if err := p.updateExistingAWSAccount(newAcc); err != nil {
-			return errors.Wrap(err, "error updating existing account")
+			return fmt.Errorf("error updating existing account: %w", err)
 		}
 		return nil
 	}
 
 	err = p.createNewAWSAccount(newAcc)
 	if err != nil {
-		return errors.Wrap(err, "error creating new account")
+		return fmt.Errorf("error creating new account: %w", err)
 	}
 
 	return nil
@@ -91,12 +91,12 @@ func (p Prisma) ifAWSAccountExists(accountID string) (bool, error) {
 	// https://api.docs.prismacloud.io/reference#get-cloud-accounts
 	rawAccounts, err := p.api.Call("GET", "/cloud", nil)
 	if err != nil {
-		return false, errors.Wrap(err, "error retrieving list of accounts")
+		return false, fmt.Errorf("error retrieving list of accounts: %w", err)
 	}
 
 	var accounts []prismaCloudAccount
 	if err := json.Unmarshal(rawAccounts, &accounts); err != nil {
-		return false, errors.Wrap(err, "error unmarshaling accounts information")
+		return false, fmt.Errorf("error unmarshalling accounts information: %w", err)
 	}
 
 	for _, acc := range accounts {
@@ -114,12 +114,12 @@ func (p Prisma) updateExistingAWSAccount(acc awsAccountInfo) error {
 	// https://api.docs.prismacloud.io/reference#get-cloud-account
 	rawAccountInfo, err := p.api.Call("GET", "/cloud/aws/"+acc.AccountID, nil)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving existing account details")
+		return fmt.Errorf("error retrieving existing account details: %w", err)
 	}
 
 	var oldAcc awsAccountInfo
 	if err := json.Unmarshal(rawAccountInfo, &oldAcc); err != nil {
-		return errors.Wrap(err, "error unmarshaling account details")
+		return fmt.Errorf("error unmarshalling account details: %w", err)
 	}
 
 	// Names are unique and should not be empty.
@@ -134,13 +134,13 @@ func (p Prisma) updateExistingAWSAccount(acc awsAccountInfo) error {
 
 		b, err := json.Marshal(acc)
 		if err != nil {
-			return errors.Wrap(err, "error marshaling account info")
+			return fmt.Errorf("error marshaling account info: %w", err)
 		}
 
 		// https://api.docs.prismacloud.io/reference#update-cloud-account
 		_, err = p.api.Call("PUT", "/cloud/aws/"+acc.AccountID, bytes.NewBuffer(b))
 		if err != nil {
-			return errors.Wrap(err, "error sending API request")
+			return fmt.Errorf("error sending API request: %w", err)
 		}
 
 		log.Info("Prisma account information updated")
@@ -162,13 +162,13 @@ func (p Prisma) createNewAWSAccount(acc awsAccountInfo) error {
 
 	b, err := json.Marshal(acc)
 	if err != nil {
-		return errors.Wrap(err, "error marshaling account info")
+		return fmt.Errorf("error marshaling account info: %w", err)
 	}
 
 	// https://api.docs.prismacloud.io/reference#add-cloud-account
 	_, err = p.api.Call("POST", "/cloud/aws/", bytes.NewBuffer(b))
 	if err != nil {
-		return errors.Wrap(err, "error sending API request")
+		return fmt.Errorf("error sending API request: %w", err)
 	}
 
 	log.Info("Prisma account created")

@@ -13,17 +13,16 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - golint
+    - revive
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - misspell
     - nakedret
     - rowserrcheck
-    - scopelint
+    - exportloopref
     - staticcheck
     - structcheck
     - stylecheck

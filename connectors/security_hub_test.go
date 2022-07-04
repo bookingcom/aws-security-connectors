@@ -15,11 +15,11 @@
 package connectors
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,19 +30,19 @@ func TestSecurityHubInviter_AddMember(t *testing.T) {
 		memberAccID     = "112233445566"
 		masterAccID     = "665544332211"
 		testEmail       = "email@example.com"
-		badGMReq        = shGetMembersReq{err: errors.New("mock err")}
+		badGMReq        = shGetMembersReq{err: fmt.Errorf("mock err")}
 		emptyGMReq      = shGetMembersReq{output: &securityhub.GetMembersOutput{}}
 		associatedGMReq = shGetMembersReq{output: &securityhub.GetMembersOutput{
 			Members: []*securityhub.Member{{MemberStatus: aws.String("Associated")}}}}
 		invitedGMReq = shGetMembersReq{output: &securityhub.GetMembersOutput{
 			Members: []*securityhub.Member{{MemberStatus: aws.String("Invited")}}}}
-		badCMReq   = shCreateMembersReq{err: errors.New("mock err")}
-		badIMReq   = shInviteMembersReq{err: errors.New("mock err")}
-		badLIReq   = shListInvitationsReq{err: errors.New("mock err")}
+		badCMReq   = shCreateMembersReq{err: fmt.Errorf("mock err")}
+		badIMReq   = shInviteMembersReq{err: fmt.Errorf("mock err")}
+		badLIReq   = shListInvitationsReq{err: fmt.Errorf("mock err")}
 		emptyLIReq = shListInvitationsReq{output: &securityhub.ListInvitationsOutput{}}
 		goodLIReq  = shListInvitationsReq{output: &securityhub.ListInvitationsOutput{
 			Invitations: []*securityhub.Invitation{{AccountId: &masterAccID, InvitationId: &invitationID}}}}
-		badAIReq = shAcceptInvitationReq{err: errors.New("mock err")}
+		badAIReq = shAcceptInvitationReq{err: fmt.Errorf("mock err")}
 	)
 
 	var testAPIRequestsDataset = []struct {

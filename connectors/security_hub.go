@@ -15,9 +15,10 @@
 package connectors
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/pkg/errors"
 )
 
 // SecurityHubInviter is a per-region structure which contains all information
@@ -58,7 +59,7 @@ func NewSecurityHubInviter(masterSess, memberSess client.ConfigProvider) *Securi
 func (s SecurityHubInviter) AddMember(accountID, accountEmail, masterAccountID string) error {
 	connected, err := ifSecurityHubMemberAlreadyAssociated(s.masterSvc, &accountID)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving information about existing member account")
+		return fmt.Errorf("error retrieving information about existing member account: %w", err)
 	}
 	if connected {
 		return nil
@@ -66,12 +67,12 @@ func (s SecurityHubInviter) AddMember(accountID, accountEmail, masterAccountID s
 
 	err = setUpSecurityHubMaster(s.masterSvc, &accountID, &accountEmail)
 	if err != nil {
-		return errors.Wrap(err, "error setting up master account")
+		return fmt.Errorf("error setting up master account: %w", err)
 	}
 
 	err = acceptSecurityHubMemberInvitation(s.memberSvc, &masterAccountID)
 	if err != nil {
-		return errors.Wrap(err, "error accepting invitation in member account")
+		return fmt.Errorf("error accepting invitation in member account: %w", err)
 	}
 
 	return nil
@@ -84,7 +85,7 @@ func ifSecurityHubMemberAlreadyAssociated(s SecurityHubMasterClient, memberAccou
 		AccountIds: []*string{memberAccountID},
 	})
 	if err != nil {
-		return false, errors.Wrap(err, "error getting existing members")
+		return false, fmt.Errorf("error getting existing members: %w", err)
 	}
 
 	// Search conditions looking for particular account and we expect to get either zero results
@@ -109,7 +110,7 @@ func setUpSecurityHubMaster(s SecurityHubMasterClient, memberAccountID, email *s
 		}},
 	})
 	if err != nil {
-		return errors.Wrap(err, "error creating member account")
+		return fmt.Errorf("error creating member account: %w", err)
 	}
 
 	_, err = s.InviteMembers(
@@ -117,7 +118,7 @@ func setUpSecurityHubMaster(s SecurityHubMasterClient, memberAccountID, email *s
 			AccountIds: []*string{memberAccountID},
 		})
 	if err != nil {
-		return errors.Wrap(err, "error sending invitation")
+		return fmt.Errorf("error sending invitation: %w", err)
 	}
 
 	return nil
@@ -127,7 +128,7 @@ func setUpSecurityHubMaster(s SecurityHubMasterClient, memberAccountID, email *s
 func acceptSecurityHubMemberInvitation(s SecurityHubMemberClient, masterAccountID *string) error {
 	invitations, err := s.ListInvitations(nil)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving list of invitations")
+		return fmt.Errorf("error retrieving list of invitations: %w", err)
 	}
 	var invitationID *string
 	for _, inv := range invitations.Invitations {
@@ -137,7 +138,7 @@ func acceptSecurityHubMemberInvitation(s SecurityHubMemberClient, masterAccountI
 		}
 	}
 	if invitationID == nil {
-		return errors.New("can't find invitation from master account")
+		return fmt.Errorf("can't find invitation from master account")
 	}
 
 	_, err = s.AcceptInvitation(&securityhub.AcceptInvitationInput{
@@ -145,7 +146,7 @@ func acceptSecurityHubMemberInvitation(s SecurityHubMemberClient, masterAccountI
 		MasterId:     masterAccountID,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error accepting invitation")
+		return fmt.Errorf("error accepting invitation: %w", err)
 	}
 
 	return nil
