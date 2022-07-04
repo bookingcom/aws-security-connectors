@@ -15,10 +15,10 @@
 package connectors
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,20 +33,20 @@ type mockRequest struct {
 func TestPrisma_AddAWSAccount(t *testing.T) {
 	// mock requests
 	var (
-		getAccListErr      = mockRequest{url: "/cloud", method: "GET", err: errors.New("mock error")}
+		getAccListErr      = mockRequest{url: "/cloud", method: "GET", err: fmt.Errorf("mock error")}
 		getAccListBadJSON  = mockRequest{url: "/cloud", method: "GET", answer: "not_json"}
 		getAccListEmpty    = mockRequest{url: "/cloud", method: "GET", answer: `[]`}
 		getAccListGood     = mockRequest{url: "/cloud", method: "GET", answer: `[{"accountId":"011223344556"}]`}
-		getAccInfoErr      = mockRequest{url: "/cloud/aws/011223344556", method: "GET", err: errors.New("mock error")}
+		getAccInfoErr      = mockRequest{url: "/cloud/aws/011223344556", method: "GET", err: fmt.Errorf("mock error")}
 		getAccInfoBadJSON  = mockRequest{url: "/cloud/aws/011223344556", method: "GET", answer: "not_json"}
 		getAccInfoGoodDiff = mockRequest{url: "/cloud/aws/011223344556", method: "GET",
 			answer: `{"accountId":"011223344556"}`}
 		getAccInfoGoodEqual = mockRequest{url: "/cloud/aws/011223344556", method: "GET",
 			answer: `{"accountId":"011223344556","enabled":true,"externalId":"test_external_id",
 "RoleArn":"arn:aws:iam::011223344556:role/test_role_name"}`}
-		getAccUpdateErr  = mockRequest{url: "/cloud/aws/011223344556", method: "PUT", err: errors.New("mock error")}
+		getAccUpdateErr  = mockRequest{url: "/cloud/aws/011223344556", method: "PUT", err: fmt.Errorf("mock error")}
 		getAccUpdateGood = mockRequest{url: "/cloud/aws/011223344556", method: "PUT"}
-		getAccCreateErr  = mockRequest{url: "/cloud/aws/", method: "POST", err: errors.New("mock error")}
+		getAccCreateErr  = mockRequest{url: "/cloud/aws/", method: "POST", err: fmt.Errorf("mock error")}
 		getAccCreateGood = mockRequest{url: "/cloud/aws/", method: "POST"}
 	)
 
@@ -60,14 +60,14 @@ func TestPrisma_AddAWSAccount(t *testing.T) {
 			error:    "error checking for existing account: error retrieving list of accounts: mock error"},
 		{description: "json problem checking existing account",
 			requests: []mockRequest{getAccListBadJSON},
-			error: "error checking for existing account: error unmarshaling accounts information: " +
+			error: "error checking for existing account: error unmarshalling accounts information: " +
 				"invalid character 'o' in literal null (expecting 'u')"},
 		{description: "problem checking existing account details",
 			requests: []mockRequest{getAccListGood, getAccInfoErr},
 			error:    "error updating existing account: error retrieving existing account details: mock error"},
 		{description: "json problem checking existing account details",
 			requests: []mockRequest{getAccListGood, getAccInfoBadJSON},
-			error: "error updating existing account: error unmarshaling account details: " +
+			error: "error updating existing account: error unmarshalling account details: " +
 				"invalid character 'o' in literal null (expecting 'u')"},
 		{description: "existing account equal to desired",
 			requests: []mockRequest{getAccListGood, getAccInfoGoodEqual}},

@@ -15,10 +15,11 @@
 package connectors
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/pkg/errors"
 )
 
 // GuardDutyInviter is a per-region structure which contains all information
@@ -47,7 +48,7 @@ type GuardDutyMasterClient interface {
 type GuardDutyMemberClient interface {
 	GuardDutyListDetectors
 	ListInvitations(*guardduty.ListInvitationsInput) (*guardduty.ListInvitationsOutput, error)
-	AcceptInvitation(*guardduty.AcceptInvitationInput) (*guardduty.AcceptInvitationOutput, error)
+	AcceptAdministratorInvitation(*guardduty.AcceptAdministratorInvitationInput) (*guardduty.AcceptAdministratorInvitationOutput, error)
 }
 
 // NewGuardDutyInviter creates new instance of GuardDutyInviter which is capable of inviting
@@ -66,12 +67,12 @@ func NewGuardDutyInviter(masterSess, memberSess client.ConfigProvider) *GuardDut
 func (g GuardDutyInviter) AddMember(accountID, accountEmail, masterAccountID string) error {
 	detectorID, err := getDetectorID(g.masterSvc)
 	if err != nil {
-		return errors.Wrap(err, "can't get detectorID of master account")
+		return fmt.Errorf("can't get detectorID of master account: %w", err)
 	}
 
 	connected, err := ifGuardDutyMemberAlreadyEnabled(g.masterSvc, detectorID, &accountID)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving information about existing member account")
+		return fmt.Errorf("error retrieving information about existing member account: %w", err)
 	}
 	if connected {
 		return nil
@@ -79,12 +80,12 @@ func (g GuardDutyInviter) AddMember(accountID, accountEmail, masterAccountID str
 
 	err = setUpGuardDutyMaster(g.masterSvc, detectorID, &accountID, &accountEmail)
 	if err != nil {
-		return errors.Wrap(err, "error setting up master account")
+		return fmt.Errorf("error setting up master account: %w", err)
 	}
 
 	err = acceptGuardDutyMemberInvitation(g.memberSvc, &masterAccountID)
 	if err != nil {
-		return errors.Wrap(err, "error accepting invitation in member account")
+		return fmt.Errorf("error accepting invitation in member account: %w", err)
 	}
 
 	return nil
@@ -98,7 +99,7 @@ func ifGuardDutyMemberAlreadyEnabled(g GuardDutyMasterClient, detectorID, member
 		AccountIds: []*string{memberAccountID},
 	})
 	if err != nil {
-		return false, errors.Wrap(err, "error getting existing members")
+		return false, fmt.Errorf("error getting existing members: %w", err)
 	}
 
 	// Search conditions looking for particular account and we expect to get either zero results
@@ -124,7 +125,7 @@ func setUpGuardDutyMaster(g GuardDutyMasterClient, detectorID, memberAccountID, 
 		}},
 	})
 	if err != nil {
-		return errors.Wrap(err, "error creating member account")
+		return fmt.Errorf("error creating member account: %w", err)
 	}
 
 	_, err = g.InviteMembers(&guardduty.InviteMembersInput{
@@ -133,7 +134,7 @@ func setUpGuardDutyMaster(g GuardDutyMasterClient, detectorID, memberAccountID, 
 		DisableEmailNotification: aws.Bool(true),
 	})
 	if err != nil {
-		return errors.Wrap(err, "error sending invitation")
+		return fmt.Errorf("error sending invitation: %w", err)
 	}
 
 	return nil
@@ -143,7 +144,7 @@ func setUpGuardDutyMaster(g GuardDutyMasterClient, detectorID, memberAccountID, 
 func acceptGuardDutyMemberInvitation(g GuardDutyMemberClient, masterAccountID *string) error {
 	invitations, err := g.ListInvitations(nil)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving list of invitations")
+		return fmt.Errorf("error retrieving list of invitations: %w", err)
 	}
 	var invitationID *string
 	for _, inv := range invitations.Invitations {
@@ -153,22 +154,22 @@ func acceptGuardDutyMemberInvitation(g GuardDutyMemberClient, masterAccountID *s
 		}
 	}
 	if invitationID == nil {
-		return errors.New("can't find invitation from master account")
+		return fmt.Errorf("can't find invitation from master account")
 	}
 
 	detector, err := getDetectorID(g)
 	if err != nil {
-		return errors.Wrap(err, "can't get detectorID to accept invitation")
+		return fmt.Errorf("can't get detectorID to accept invitation: %w", err)
 	}
 
-	_, err = g.AcceptInvitation(
-		&guardduty.AcceptInvitationInput{
-			DetectorId:   detector,
-			InvitationId: invitationID,
-			MasterId:     masterAccountID,
+	_, err = g.AcceptAdministratorInvitation(
+		&guardduty.AcceptAdministratorInvitationInput{
+			DetectorId:      detector,
+			InvitationId:    invitationID,
+			AdministratorId: masterAccountID,
 		})
 	if err != nil {
-		return errors.Wrap(err, "error accepting invitation")
+		return fmt.Errorf("error accepting invitation: %w", err)
 	}
 
 	return nil
@@ -178,10 +179,10 @@ func acceptGuardDutyMemberInvitation(g GuardDutyMemberClient, masterAccountID *s
 func getDetectorID(g GuardDutyListDetectors) (*string, error) {
 	detectors, err := g.ListDetectors(nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "error listing detectors")
+		return nil, fmt.Errorf("error listing detectors: %w", err)
 	}
 	if len(detectors.DetectorIds) != 1 {
-		return nil, errors.Errorf(
+		return nil, fmt.Errorf(
 			"%d detectors found instead of one",
 			len(detectors.DetectorIds),
 		)

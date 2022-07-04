@@ -15,11 +15,11 @@
 package connectors
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/detective"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,19 +30,19 @@ func TestDetectiveInviter_AddMember(t *testing.T) {
 		memberAccID     = "112233445566"
 		masterAccID     = "665544332211"
 		testEmail       = "email@example.com"
-		badGMReq        = dGetMembersReq{err: errors.New("mock err")}
+		badGMReq        = dGetMembersReq{err: fmt.Errorf("mock err")}
 		emptyGMReq      = dGetMembersReq{output: &detective.GetMembersOutput{}}
 		associatedGMReq = dGetMembersReq{output: &detective.GetMembersOutput{
 			MemberDetails: []*detective.MemberDetail{{Status: aws.String("Enabled")}}}}
 		invitedGMReq = dGetMembersReq{output: &detective.GetMembersOutput{
 			MemberDetails: []*detective.MemberDetail{{Status: aws.String("Invited")}}}}
-		badCMReq   = dCreateMembersReq{err: errors.New("mock err")}
-		badLIReq   = dListInvitationsReq{err: errors.New("mock err")}
+		badCMReq   = dCreateMembersReq{err: fmt.Errorf("mock err")}
+		badLIReq   = dListInvitationsReq{err: fmt.Errorf("mock err")}
 		emptyLIReq = dListInvitationsReq{output: &detective.ListInvitationsOutput{}}
 		goodLIReq  = dListInvitationsReq{output: &detective.ListInvitationsOutput{
 			Invitations: []*detective.MemberDetail{{AccountId: &masterAccID, GraphArn: &graphARN}}}}
-		badAIReq  = dAcceptInvitationReq{err: errors.New("mock err")}
-		badDReq   = dGraphReq{err: errors.New("mock err")}
+		badAIReq  = dAcceptInvitationReq{err: fmt.Errorf("mock err")}
+		badDReq   = dGraphReq{err: fmt.Errorf("mock err")}
 		emptyDReq = dGraphReq{output: &detective.ListGraphsOutput{}}
 		goodDReq  = dGraphReq{output: &detective.ListGraphsOutput{GraphList: []*detective.Graph{{Arn: &graphARN}}}}
 	)

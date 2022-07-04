@@ -15,11 +15,11 @@
 package connectors
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,20 +31,20 @@ func TestGuardDutyInviter_AddMember(t *testing.T) {
 		memberAccID     = "112233445566"
 		masterAccID     = "665544332211"
 		testEmail       = "email@example.com"
-		badGMReq        = gdGetMembersReq{err: errors.New("mock err")}
+		badGMReq        = gdGetMembersReq{err: fmt.Errorf("mock err")}
 		emptyGMReq      = gdGetMembersReq{output: &guardduty.GetMembersOutput{}}
 		associatedGMReq = gdGetMembersReq{output: &guardduty.GetMembersOutput{
 			Members: []*guardduty.Member{{RelationshipStatus: aws.String("Enabled")}}}}
 		invitedGMReq = gdGetMembersReq{output: &guardduty.GetMembersOutput{
 			Members: []*guardduty.Member{{RelationshipStatus: aws.String("Invited")}}}}
-		badCMReq   = gdCreateMembersReq{err: errors.New("mock err")}
-		badIMReq   = gdInviteMembersReq{err: errors.New("mock err")}
-		badLIReq   = gdListInvitationsReq{err: errors.New("mock err")}
+		badCMReq   = gdCreateMembersReq{err: fmt.Errorf("mock err")}
+		badIMReq   = gdInviteMembersReq{err: fmt.Errorf("mock err")}
+		badLIReq   = gdListInvitationsReq{err: fmt.Errorf("mock err")}
 		emptyLIReq = gdListInvitationsReq{output: &guardduty.ListInvitationsOutput{}}
 		goodLIReq  = gdListInvitationsReq{output: &guardduty.ListInvitationsOutput{
 			Invitations: []*guardduty.Invitation{{AccountId: &masterAccID, InvitationId: &invitationID}}}}
-		badAIReq  = gdAcceptInvitationReq{err: errors.New("mock err")}
-		badDReq   = gdDetectorReq{err: errors.New("mock err")}
+		badAIReq  = gdAcceptInvitationReq{err: fmt.Errorf("mock err")}
+		badDReq   = gdDetectorReq{err: fmt.Errorf("mock err")}
 		emptyDReq = gdDetectorReq{output: &guardduty.ListDetectorsOutput{}}
 		goodDReq  = gdDetectorReq{output: &guardduty.ListDetectorsOutput{DetectorIds: []*string{&detectorID}}}
 	)
@@ -238,7 +238,7 @@ func (s mockGDMemberClient) ListInvitations(input *guardduty.ListInvitationsInpu
 	return s.liReq.output, s.liReq.err
 }
 
-func (s mockGDMemberClient) AcceptInvitation(input *guardduty.AcceptInvitationInput) (*guardduty.AcceptInvitationOutput, error) {
-	assert.Equal(s.t, &guardduty.AcceptInvitationInput{InvitationId: s.invitationID, MasterId: s.masterAccountID, DetectorId: s.detectorID}, input)
+func (s mockGDMemberClient) AcceptAdministratorInvitation(input *guardduty.AcceptAdministratorInvitationInput) (*guardduty.AcceptAdministratorInvitationOutput, error) {
+	assert.Equal(s.t, &guardduty.AcceptAdministratorInvitationInput{InvitationId: s.invitationID, AdministratorId: s.masterAccountID, DetectorId: s.detectorID}, input)
 	return nil, s.aiReq.err
 }

@@ -24,7 +24,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/pkg/errors"
 )
 
 // return valid AWS role ARN for provided accountID and role name
@@ -37,7 +36,7 @@ func buildRoleARN(accountID, roleName string) string {
 func GetAccountID(session client.ConfigProvider) (string, error) {
 	arn, err := sts.New(session).GetCallerIdentity(nil)
 	if err != nil {
-		return "", errors.Wrap(err, "problem retrieving account id")
+		return "", fmt.Errorf("problem retrieving account id: %w", err)
 	}
 	return *arn.Account, nil
 }

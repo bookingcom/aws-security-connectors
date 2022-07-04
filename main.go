@@ -15,13 +15,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/bookingcom/aws-security-connectors/connectors"
@@ -73,7 +73,7 @@ func main() {
 			opts.Prisma.RoleName,
 		); err != nil {
 			result = multierror.Append(result,
-				errors.Wrap(err, "problem adding account to Prisma"))
+				fmt.Errorf("problem adding account to Prisma: %w", err))
 		}
 	}
 
@@ -94,7 +94,7 @@ func main() {
 				var err error
 				if masterAccountID, err = connectors.GetAccountID(masterSess); err != nil {
 					result = multierror.Append(result,
-						errors.Wrapf(err, "problem retrieving master account ID, aborting AWS services adding"))
+						fmt.Errorf("problem retrieving master account ID, aborting AWS services adding: %w", err))
 					break
 				}
 			}
@@ -103,7 +103,7 @@ func main() {
 				g := connectors.NewGuardDutyInviter(masterSess, memberSess)
 				if err := g.AddMember(opts.AWS.AccountID, opts.AWS.Email, masterAccountID); err != nil {
 					result = multierror.Append(result,
-						errors.Wrapf(err, "problem adding member account to AWS GuardDuty in %s", region))
+						fmt.Errorf("problem adding member account to AWS GuardDuty in %s: %w", region, err))
 				}
 			}
 
@@ -111,7 +111,7 @@ func main() {
 				s := connectors.NewSecurityHubInviter(masterSess, memberSess)
 				if err := s.AddMember(opts.AWS.AccountID, opts.AWS.Email, masterAccountID); err != nil {
 					result = multierror.Append(result,
-						errors.Wrapf(err, "problem adding member account to AWS Security Hub in %s", region))
+						fmt.Errorf("problem adding member account to AWS Security Hub in %s: %w", region, err))
 				}
 			}
 
@@ -119,7 +119,7 @@ func main() {
 				d := connectors.NewDetectiveInviter(masterSess, memberSess)
 				if err := d.AddMember(opts.AWS.AccountID, opts.AWS.Email, masterAccountID); err != nil {
 					result = multierror.Append(result,
-						errors.Wrapf(err, "problem adding member account to AWS Detective in %s", region))
+						fmt.Errorf("problem adding member account to AWS Detective in %s: %w", region, err))
 				}
 			}
 		}
