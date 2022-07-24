@@ -1,4 +1,4 @@
-# AWS Security Connectors [![Build Status](https://github.com/bookingcom/aws-security-connectors/workflows/build/badge.svg)](https://github.com/bookingcom/aws-security-connectors/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/bookingcom/aws-security-connectors)](https://goreportcard.com/report/github.com/bookingcom/aws-security-connectors)
+# AWS Security Connectors [![Build Status](https://github.com/bookingcom/aws-security-connectors/workflows/build/badge.svg)](https://github.com/bookingcom/aws-security-connectors/actions/workflows/ci-build.yml) [![Run Status](https://github.com/bookingcom/aws-security-connectors/workflows/run/badge.svg)](https://github.com/bookingcom/aws-security-connectors/actions/workflows/ci-run.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/bookingcom/aws-security-connectors)](https://goreportcard.com/report/github.com/bookingcom/aws-security-connectors) [![Image Size](https://img.shields.io/docker/image-size/paskal/aws-security-connectors)](https://hub.docker.com/r/paskal/aws-security-connectors)
 
 ## Overview
 
