@@ -36,10 +36,11 @@ jobs:
         env:
           GITHUB_PACKAGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+          DOCKER_HUB_USER: paskal
           USERNAME: ${{ github.actor }}
         run: |
           echo ${GITHUB_PACKAGE_TOKEN} | docker login ghcr.io -u ${USERNAME} --password-stdin
-          echo ${DOCKER_HUB_TOKEN} | docker login -u ${USERNAME} --password-stdin
+          echo ${DOCKER_HUB_TOKEN} | docker login -u ${DOCKER_HUB_USER} --password-stdin
           docker buildx build --push \
               --platform linux/amd64,linux/arm64 \
-              -t ghcr.io/${USERNAME}/aws-security-connectors:latest -t ${USERNAME}/aws-security-connectors:latest .
+              -t ghcr.io/${USERNAME}/aws-security-connectors:latest -t ${DOCKER_HUB_USER}/aws-security-connectors:latest .
