@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: install go
       uses: actions/setup-go@v3
@@ -23,7 +23,7 @@ jobs:
       run: go test -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov ./...
 
     - name: install golangci-lint
-      run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $GITHUB_WORKSPACE v1.46.1
+      run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $GITHUB_WORKSPACE v1.50.1
 
     - name: run linters
       run: $GITHUB_WORKSPACE/golangci-lint run ./... ;
