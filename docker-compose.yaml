@@ -1,9 +1,8 @@
-version: '2'
 services:
 
   aws-security-connectors:
     build: .
-    image: paskal/aws-security-connectors:latest
+    image: ghcr.io/bookingcom/aws-security-connectors:latest
     environment:
       - DEBUG
       - AWS_ACCOUNT_ID

@@ -1,7 +1,6 @@
 linters:
   enable:
     - bodyclose
-    - depguard
     - dogsled
     - dupl
     - errcheck
@@ -21,7 +20,7 @@ linters:
     - misspell
     - nakedret
     - rowserrcheck
-    - exportloopref
+    - copyloopvar
     - staticcheck
     - stylecheck
     - typecheck

@@ -98,8 +98,6 @@ func TestDetectiveInviter_AddMember(t *testing.T) {
 
 	masterSess, memberSess := NewMasterMemberSess("us-west-2", "", "")
 	for i, x := range testAPIRequestsDataset {
-		i := i
-		x := x
 		t.Run(x.description, func(t *testing.T) {
 			master := &mockDMasterClient{
 				t:           t,

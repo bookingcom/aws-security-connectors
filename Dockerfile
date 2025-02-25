@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.authors="Dmitry Verkhoturov <paskal.07@gmail.com>
       org.opencontainers.image.description="AWS Security Connectors" \
       org.opencontainers.image.documentation="https://github.com/bookingcom/aws-security-connectors" \
       org.opencontainers.image.licenses="Apache 2.0" \
-      org.opencontainers.image.source="https://github.com/bookingcom/aws-security-connectors.git" \
+      org.opencontainers.image.source="https://github.com/bookingcom/aws-security-connectors" \
       org.opencontainers.image.title="aws-security-connectors" \
       org.opencontainers.image.vendor="Booking.com"
 

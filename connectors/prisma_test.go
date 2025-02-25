@@ -84,8 +84,6 @@ func TestPrisma_AddAWSAccount(t *testing.T) {
 	}
 
 	for i, x := range testAPIRequestsDataset {
-		i := i
-		x := x
 		t.Run(x.description, func(t *testing.T) {
 			m := &mockClient{t: t, requests: x.requests}
 			p := NewPrisma("", "", "")
